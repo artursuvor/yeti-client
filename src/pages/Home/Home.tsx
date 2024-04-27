@@ -3,30 +3,66 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 
 interface Yeti {
-    id: number;
-    name: string;
-    height: number;
-    weight: number;
-    location: string;
-    photo_url: string;
-    gender: string;
+  id: number;
+  name: string;
+  height: number;
+  weight: number;
+  location: string;
+  photo_url: string;
+  gender: string;
+  reviewsCount: number; 
+  averageRating: number;
+}
+
+interface Review {
+  text: string;
+  rating: number;
 }
 
 const Home: React.FC = () => {
   const [yetiList, setYetiList] = useState<Yeti[]>([]); 
+  const [reviews, setReviews] = useState<{[key: number]: Review[]}>({});
 
   useEffect(() => {
       const fetchYetiList = async () => {
-          try {
-              const response = await axios.get('http://127.0.0.1:8000/yeti/list');
-              setYetiList(response.data);
-          } catch (error) {
-              console.error('Error fetching yeti list:', error);
-          }
+        try {
+          const response = await axios.get('http://127.0.0.1:8000/yeti/list');
+          setYetiList(response.data);
+        } catch (error) {
+          console.error('Error fetching yeti list:', error);
+        }
       };
 
       fetchYetiList();
   }, []);
+
+  useEffect(() => {
+    const fetchYetiList = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/yeti/list');
+        setYetiList(response.data);
+  
+        const promises = response.data.map(async (yeti: Yeti) => {
+          try {
+            const reviewResponse = await axios.get(`http://127.0.0.1:8000/review/get_all_for_yeti/${yeti.id}`);
+            // Сохраняем отзывы в состоянии компонента
+            setReviews(prevReviews => ({
+              ...prevReviews,
+              [yeti.id]: reviewResponse.data
+            }));
+          } catch (error) {
+            console.error('Error fetching reviews for yeti:', error);
+          }
+        });
+        await Promise.all(promises);
+      } catch (error) {
+        console.error('Error fetching yeti list:', error);
+      }
+    };
+  
+    fetchYetiList();
+  }, []);
+  
 
   const [showPopup, setShowPopup] = useState(false);
   const [newYetiData, setNewYetiData] = useState({
@@ -47,7 +83,6 @@ const Home: React.FC = () => {
     try {
       await axios.post('http://127.0.0.1:8000/yeti/add', newYetiData);
       setShowPopup(false);
-      // Обновите yetiList после добавления нового Yeti, чтобы обновить список на вашем интерфейсе
       const response = await axios.get('http://127.0.0.1:8000/yeti/list');
       setYetiList(response.data);
     } catch (error) {
@@ -55,6 +90,12 @@ const Home: React.FC = () => {
     }
   }  
   
+  const calculateAverageRating = (reviews: Review[] | undefined) => {
+    if (!reviews || reviews.length === 0) return 0;
+  
+    const totalRating = reviews.reduce((acc, review) => acc + review.rating, 0);
+    return totalRating / reviews.length;
+  };
 
   return (
     <div className="container">
@@ -65,11 +106,13 @@ const Home: React.FC = () => {
           <div className='card' key={yeti.id}>
             <li>
               Name: {yeti.name}, 
-              Height: {yeti.height}, 
+              {/* Height: {yeti.height}, 
               Weight: {yeti.weight},
               Location: {yeti.location},
-              Gender: {yeti.gender}
+              Gender: {yeti.gender} */}
             </li>
+            <p>Reviews Count: {reviews[yeti.id] ? reviews[yeti.id].length : 0}</p>
+            <p>Average Rating: {calculateAverageRating(reviews[yeti.id])}</p>
             <Link
               to={`/yeti/get/${yeti.id}`}
               className="btn btn-primary"
