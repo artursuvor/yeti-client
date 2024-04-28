@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import Yetinder from '../../components/Yetinder/Yetinder';
 import axios from 'axios';
 
 interface Yeti {
@@ -13,11 +14,17 @@ interface Yeti {
   gender: string;
 }
 
+interface Review {
+  text: string;
+  rating: number;
+}
+
 const YetiDetail = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
   const [yeti, setYeti] = useState<Yeti | null>(null);
-  const [comment, setReview] = useState<string>('');
+  const [comment, setComment] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
+  const [reviews, setReviews] = useState<{comment: string, rating: number}[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -32,6 +39,19 @@ const YetiDetail = (): JSX.Element => {
   
     fetchYeti();
   }, [id]);
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/review/get_all_for_yeti/${id}`);
+        setReviews(response.data);
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
+
+    fetchReviews();
+  }, [id]);
   
   const handleDelete = async () => {
     try {
@@ -44,18 +64,22 @@ const YetiDetail = (): JSX.Element => {
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post(`http://127.0.0.1:8000/review/addReview`, {
+      await axios.post(`http://127.0.0.1:8000/review/addReview`, {
         yetiId: id,
         comment,
         rating,
       });
-      console.log('Review submitted:', response.data);
-      setReview('');
+      const response = await axios.get(`http://127.0.0.1:8000/review/get_all_for_yeti/${id}`);
+      setReviews(response.data);
+      setComment('');
       setRating(0);
     } catch (error) {
       console.error('Error submitting review:', error);
     }
   };
+
+  const totalRating = reviews.reduce((accumulator, review) => accumulator + review.rating, 0);
+  const averageRating = totalRating / reviews.length;
 
   if (!yeti) {
     return <div>Loading...</div>;
@@ -74,12 +98,12 @@ const YetiDetail = (): JSX.Element => {
               <p className="card-text">Location: {yeti.location}</p>
               <p className="card-text">Gender: {yeti.gender}</p>
               <div className="form-group">
-                <label htmlFor="review">Review:</label>
+                <label htmlFor="comment">Comment:</label>
                 <textarea
-                  id="review"
+                  id="comment"
                   className="form-control"
                   value={comment}
-                  onChange={(e) => setReview(e.target.value)}
+                  onChange={(e) => setComment(e.target.value)}
                 ></textarea>
               </div>
               <div className="form-group">
@@ -96,16 +120,28 @@ const YetiDetail = (): JSX.Element => {
                   ))}
                 </div>
               </div>
-              <button className="btn btn-primary" onClick={handleSubmit}>Submit</button>
-              <button className="btn btn-danger ml-2" onClick={handleDelete}>Delete</button>
+              <button className="btn btn-primary" onClick={handleSubmit}>Submit Review</button>
+              <button className="btn btn-danger ml-2" onClick={handleDelete}>Delete Yeti</button>
             </div>
           </div>
           <Link to="/" className="btn btn-primary mt-3">Back</Link>
         </div>
       </div>
+      <div>
+        <h6>Reviews:</h6>
+        {reviews.map((review, index) => (
+          <div key={index}>
+            <p>Text: {review.comment}</p>
+            <p>Rating: {review.rating}</p>
+          </div>
+        ))}
+        <div>
+          <p>Average Rating: {averageRating}</p>
+        </div>
+      </div>
+      <Yetinder averageRating={averageRating} />
     </div>
   );
 };
 
 export default YetiDetail;
-

@@ -45,7 +45,6 @@ const Home: React.FC = () => {
         const promises = response.data.map(async (yeti: Yeti) => {
           try {
             const reviewResponse = await axios.get(`http://127.0.0.1:8000/review/get_all_for_yeti/${yeti.id}`);
-            // Сохраняем отзывы в состоянии компонента
             setReviews(prevReviews => ({
               ...prevReviews,
               [yeti.id]: reviewResponse.data
