@@ -1,0 +1,23 @@
+footer {
+  position: relative; 
+  padding: 0px 10px;
+  margin: 0px;
+}
+
+footer p {
+  font-size: 20px;
+  color: #333;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+
+.line {
+  position: absolute; 
+  top: 50%; 
+  left: calc(10%); 
+  width: calc(80%); 
+  height: 2px; 
+  border-radius: 10%;
+  background-color: black;
+}

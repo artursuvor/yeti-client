@@ -1,0 +1,60 @@
+.container-yeti-detail{
+  justify-content: center;
+  padding: 30px 80px;
+  
+}
+
+.card-title{
+  padding: 25px;
+  font-size: 35px;
+}
+
+.card-text{
+  padding: 15px;
+  font-size: large;
+}
+
+.card-img-top {
+  width: 100%;
+  height: auto;
+}
+
+.card-body p{
+  font-size: 15px;
+}
+
+.btn-primary {
+  margin-top: 10px;
+}
+
+.btn-danger {
+  margin-top: 10px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+textarea {
+  height: 100px;
+}
+
+.rating-container {
+  margin-top: 20px;
+}
+
+.rating-container span {
+  font-size: 24px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.rating-container span:hover,
+.rating-container span:hover ~ span {
+  color: #ffc107;
+}
+
+.rating-container span.active,
+.rating-container span.active ~ span {
+  color: #ffc107;
+}

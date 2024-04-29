@@ -2,29 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Yetinder from '../../components/Yetinder/Yetinder';
+import { Yeti } from '../../types/types';
 import axios from 'axios';
-
-interface Yeti {
-  id: number;
-  name: string;
-  height: number;
-  weight: number;
-  location: string;
-  photo_url: string;
-  gender: string;
-}
-
-interface Review {
-  text: string;
-  rating: number;
-}
+import './YetiDetail.css';
 
 const YetiDetail = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
   const [yeti, setYeti] = useState<Yeti | null>(null);
   const [comment, setComment] = useState<string>('');
   const [rating, setRating] = useState<number>(0);
-  const [reviews, setReviews] = useState<{comment: string, rating: number}[]>([]);
+  const [reviews, setReviews] = useState<{ comment: string; rating: number }[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +23,7 @@ const YetiDetail = (): JSX.Element => {
         console.error('Error fetching yeti details:', error);
       }
     };
-  
+
     fetchYeti();
   }, [id]);
 
@@ -52,7 +39,7 @@ const YetiDetail = (): JSX.Element => {
 
     fetchReviews();
   }, [id]);
-  
+
   const handleDelete = async () => {
     try {
       await axios.post(`http://127.0.0.1:8000/yeti/delete/${id}`);
@@ -79,67 +66,88 @@ const YetiDetail = (): JSX.Element => {
   };
 
   const totalRating = reviews.reduce((accumulator, review) => accumulator + review.rating, 0);
-  const averageRating = totalRating / reviews.length;
+  const averageRating = reviews.length > 0 ? totalRating / reviews.length : 0;
 
   if (!yeti) {
     return <div>Loading...</div>;
   }
-
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-6">
-          <div className="card">
-            <img src={yeti.photo_url} className="card-img-top" alt={yeti.name} />
-            <div className="card-body">
-              <h5 className="card-title">{yeti.name}</h5>
-              <p className="card-text">Height: {yeti.height} cm</p>
-              <p className="card-text">Weight: {yeti.weight} kg</p>
-              <p className="card-text">Location: {yeti.location}</p>
-              <p className="card-text">Gender: {yeti.gender}</p>
-              <div className="form-group">
-                <label htmlFor="comment">Comment:</label>
-                <textarea
-                  id="comment"
-                  className="form-control"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                ></textarea>
-              </div>
-              <div className="form-group">
-                <label htmlFor="rating">Rating:</label>
-                <div>
-                  {[...Array(5)].map((_, index) => (
-                    <span
-                      key={index}
-                      onClick={() => setRating(index + 1)}
-                      style={{ cursor: 'pointer', color: index < rating ? '#ffc107' : '#e4e5e9' }}
-                    >
-                      &#9733;
-                    </span>
-                  ))}
+    <div className="container-yeti-detail">
+      <div className="row">
+        {/* Yeti Details */}
+        <div className="col-md-4 card">
+          <div className="card-body">
+            {yeti.photo_url ? (
+              <img src={yeti.photo_url} alt="Yeti Photo" className="card-img-top personal-photo" />
+            ) : (
+              <div className="default-photo">Y</div>
+            )}
+            <h5 className="card-title">{yeti.name}</h5>
+            <p className="card-text">Height: {yeti.height} cm</p>
+            <p className="card-text">Weight: {yeti.weight} kg</p>
+            <p className="card-text">Location: {yeti.location}</p>
+            <p className="card-text">Gender: {yeti.gender}</p>
+          </div>
+        </div>
+        {/* Reviews */}
+        <div className="col-md-4 card">
+          <div className="card-body">
+            <p className="mb-3">Reviews:</p>
+            <ul style={{ maxHeight: '200px', overflow: 'auto' }}>
+              {reviews.map((review, index) => (
+                <div className="card mb-3" key={index}>
+                  <div className="card-body">
+                    <p className="mb-1">'{review.comment}'</p>
+                    <p className="mb-0">Rating: {review.rating}</p>
+                  </div>
                 </div>
-              </div>
-              <button className="btn btn-primary" onClick={handleSubmit}>Submit Review</button>
-              <button className="btn btn-danger ml-2" onClick={handleDelete}>Delete Yeti</button>
+              ))}
+            </ul>
+            <p className="mb-1">Average Rating: {averageRating.toFixed(1)}</p>
+            <div className="form-group">
+              <label htmlFor="comment">Comment:</label>
+              <textarea
+                id="comment"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                className="form-control"
+              ></textarea>
             </div>
+            <div className="form-group">
+              <label htmlFor="rating">Rating:</label>
+              <div className="rating-container">
+                {[...Array(5)].map((_, index) => (
+                  <span
+                    key={index}
+                    onClick={() => setRating(index + 1)}
+                    className={index < rating ? 'active' : ''}
+                  >
+                    &#9733;
+                  </span>
+                ))}
+              </div>
+            </div>
+            <button className="btn btn-primary" onClick={handleSubmit}>
+              Submit Review
+            </button>
+            <button className="btn btn-danger ml-2" onClick={handleDelete}>
+              Delete Yeti
+            </button>
           </div>
-          <Link to="/" className="btn btn-primary mt-3">Back</Link>
+        </div>
+        {/* Yetinder */}
+        <div className="col-md-3 card">
+          <div className="card-body">
+            <Yetinder averageRating={averageRating} />
+          </div>
+        </div>
+        {/* Back Button */}
+        <div className="col-md-12 mt-3">
+          <Link to="/" className="btn btn-primary">
+            Back
+          </Link>
         </div>
       </div>
-      <div>
-        <h6>Reviews:</h6>
-        {reviews.map((review, index) => (
-          <div key={index}>
-            <p>Text: {review.comment}</p>
-            <p>Rating: {review.rating}</p>
-          </div>
-        ))}
-        <div>
-          <p>Average Rating: {averageRating}</p>
-        </div>
-      </div>
-      <Yetinder averageRating={averageRating} />
     </div>
   );
 };

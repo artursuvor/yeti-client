@@ -1,0 +1,21 @@
+.header {
+  background-color: #007bff;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.header h1{
+  margin: 0;
+  padding: 1px;
+}
+
+.header-link {
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.header h1:hover {
+  color: #585858;
+}
