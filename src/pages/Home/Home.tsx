@@ -17,7 +17,7 @@ const Home: React.FC = () => {
     photo_url: '',
     gender: '',
   });
-  const [visibleYetiCount, setVisibleYetiCount] = useState(10);
+  const [visibleYetiCount, setVisibleYetiCount] = useState(12);
 
   useEffect(() => {
     const fetchYetiList = async () => {
@@ -76,7 +76,7 @@ const Home: React.FC = () => {
 
   const renderRatingStars = (rating: number) => {
     const stars = [];
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 4; i++) {
       if (i < rating) {
         stars.push(<span key={i}>&#9733;</span>);
       } else {

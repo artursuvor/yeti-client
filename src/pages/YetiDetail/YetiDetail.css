@@ -53,8 +53,3 @@ textarea {
 .rating-container span:hover ~ span {
   color: #ffc107;
 }
-
-.rating-container span.active,
-.rating-container span.active ~ span {
-  color: #ffc107;
-}

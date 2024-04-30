@@ -4,7 +4,7 @@ import "./Footer.css";
 const Footer: React.FC = () => {
   return (
     <footer>
-      <p>© YETIDER 2024</p>
+      <p>© YETINDER 2024</p>
       <div className="line"></div> 
     </footer>
   )

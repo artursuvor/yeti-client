@@ -6,6 +6,26 @@ import { Yeti } from '../../types/types';
 import axios from 'axios';
 import './YetiDetail.css';
 
+const escapeHTML = (unsafe: string | undefined): string => {
+  if (!unsafe) return ''; 
+  return unsafe.replace(/[&<"']/g, (m) => {
+    switch (m) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return m;
+    }
+  });
+};
+
 const YetiDetail = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
   const [yeti, setYeti] = useState<Yeti | null>(null);
@@ -51,9 +71,10 @@ const YetiDetail = (): JSX.Element => {
 
   const handleSubmit = async () => {
     try {
+      const sanitizedComment = escapeHTML(comment); // Экранирование HTML символов в комментарии
       await axios.post(`http://127.0.0.1:8000/review/addReview`, {
         yetiId: id,
-        comment,
+        comment: sanitizedComment, // Используем экранированный комментарий
         rating,
       });
       const response = await axios.get(`http://127.0.0.1:8000/review/get_all_for_yeti/${id}`);
@@ -97,7 +118,7 @@ const YetiDetail = (): JSX.Element => {
               {reviews.map((review, index) => (
                 <div className="card mb-3" key={index}>
                   <div className="card-body">
-                    <p className="mb-1">'{review.comment}'</p>
+                    <p className="mb-1">{escapeHTML(review.comment)}</p> {/* Экранирование HTML символов в комментарии */}
                     <p className="mb-0">Rating: {review.rating}</p>
                   </div>
                 </div>
@@ -120,7 +141,7 @@ const YetiDetail = (): JSX.Element => {
                   <span
                     key={index}
                     onClick={() => setRating(index + 1)}
-                    className={index < rating ? 'active' : ''}
+                    style={{ cursor: 'pointer', color: index < rating ? '#ffc107' : '#e4e5e9' }}
                   >
                     &#9733;
                   </span>
