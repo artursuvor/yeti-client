@@ -1,21 +1,91 @@
 .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
   background-color: #007bff;
   color: white;
-  padding: 20px;
-  text-align: center;
-}
-
-.header h1{
-  margin: 0;
-  padding: 1px;
 }
 
 .header-link {
-  display: inline-block;
   text-decoration: none;
-  color: inherit;
+  color: white;
 }
 
-.header h1:hover {
-  color: #585858;
+.login-container {
+  position: relative;
+}
+
+.login-button, .logout-button{
+  background-color: #333;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.auth-form {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+.auth-form-container {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #333;
+  min-width: 500px;
+  margin: 0 auto;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.submit-button{
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.submit-button:hover{
+  background-color: #0056b3;
+}
+
+.button-container{
+  display: flex;
+  justify-content: space-between;
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.auth-form-container p{
+  color: red;
 }

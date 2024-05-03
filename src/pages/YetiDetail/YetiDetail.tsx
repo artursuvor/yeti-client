@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Yetinder from '../../components/Yetinder/Yetinder';
 import { Yeti } from '../../types/types';
 import axios from 'axios';
+import AdminActions from '../../components/AdminActions/AdminActions';
 import './YetiDetail.css';
 
 const escapeHTML = (unsafe: string | undefined): string => {
@@ -151,9 +152,11 @@ const YetiDetail = (): JSX.Element => {
             <button className="btn btn-primary" onClick={handleSubmit}>
               Submit Review
             </button>
-            <button className="btn btn-danger ml-2" onClick={handleDelete}>
-              Delete Yeti
-            </button>
+            <AdminActions >
+              <button className="btn btn-danger ml-2" onClick={handleDelete}>
+                Delete Yeti
+              </button>
+            </AdminActions>
           </div>
         </div>
         {/* Yetinder */}

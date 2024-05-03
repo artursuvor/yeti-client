@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Yeti, Review } from '../../types/types';
 import { calculateAverageRating } from '../../functions/calculateAverageRating';
+import UserActions from '../../components/UserActions/UserActions';
 import './Home.css';
 
 const Home: React.FC = () => {
@@ -76,7 +77,7 @@ const Home: React.FC = () => {
 
   const renderRatingStars = (rating: number) => {
     const stars = [];
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 5; i++) {
       if (i < rating) {
         stars.push(<span key={i}>&#9733;</span>);
       } else {
@@ -117,44 +118,46 @@ const Home: React.FC = () => {
         {yetiList.length > visibleYetiCount && (
           <button className="more-button" onClick={() => setVisibleYetiCount(visibleYetiCount + 5)}>More Yeti</button>
         )}
-        <button className="add-button" onClick={() => setShowPopup(true)}>Add Yeti</button>
-        {showPopup && (
-          <div className="popup" onClick={() => setShowPopup(false)}>
-            <div className="popup-content" onClick={handlePopupClick}>
-              <h2>Add New Yeti</h2>
-              <input type="text" name="name" value={newYetiData.name} onChange={handleInputChange} placeholder="Name" />
-              <input type="text" name="height" value={newYetiData.height} onChange={handleInputChange} placeholder="Height" />
-              <input type="text" name="weight" value={newYetiData.weight} onChange={handleInputChange} placeholder="Weight" />
-              <input type="text" name="location" value={newYetiData.location} onChange={handleInputChange} placeholder="Location" />
-              <input type="text" name="photo_url" value={newYetiData.photo_url} onChange={handleInputChange} placeholder="Photo URL" />
-              <div className="gender-input">
-                <label>
-                  <input 
-                    type="radio" 
-                    id="male" 
-                    name="gender" 
-                    value="M" 
-                    checked={newYetiData.gender === "M"} 
-                    onChange={handleInputChange} 
-                  />
-                  M
-                </label>
-                <label>
-                  <input 
-                    type="radio" 
-                    id="female" 
-                    name="gender" 
-                    value="W" 
-                    checked={newYetiData.gender === "W"} 
-                    onChange={handleInputChange} 
-                  />
-                  W
-                </label>
+        <UserActions>
+          <button className="add-button" onClick={() => setShowPopup(true)}>Add Yeti</button>
+          {showPopup && (
+            <div className="popup" onClick={() => setShowPopup(false)}>
+                <div className="popup-content" onClick={handlePopupClick}>
+                  <h2>Add New Yeti</h2>
+                  <input type="text" name="name" value={newYetiData.name} onChange={handleInputChange} placeholder="Name" />
+                  <input type="text" name="height" value={newYetiData.height} onChange={handleInputChange} placeholder="Height" />
+                  <input type="text" name="weight" value={newYetiData.weight} onChange={handleInputChange} placeholder="Weight" />
+                  <input type="text" name="location" value={newYetiData.location} onChange={handleInputChange} placeholder="Location" />
+                  <input type="text" name="photo_url" value={newYetiData.photo_url} onChange={handleInputChange} placeholder="Photo URL" />
+                  <div className="gender-input">
+                    <label>
+                      <input 
+                        type="radio" 
+                        id="male" 
+                        name="gender" 
+                        value="M" 
+                        checked={newYetiData.gender === "M"} 
+                        onChange={handleInputChange} 
+                      />
+                      M
+                    </label>
+                    <label>
+                      <input 
+                        type="radio" 
+                        id="female" 
+                        name="gender" 
+                        value="W" 
+                        checked={newYetiData.gender === "W"} 
+                        onChange={handleInputChange} 
+                      />
+                      W
+                    </label>
+                  </div>
+                  <button className="create-button" onClick={handleSubmit}>Create Yeti</button>
                 </div>
-              <button className="create-button" onClick={handleSubmit}>Create Yeti</button>
             </div>
-          </div>
-        )}
+          )}
+        </UserActions>
       </div>
     </div>
   );
