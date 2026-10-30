@@ -16,12 +16,44 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: "22"
-      - name: Audit and apply compatible lockfile fixes
+      - name: Apply reviewed dependency updates and audit
         run: |
           node - <<'NODE'
           const fs = require('fs'), cp = require('child_process');
           const dirs = ["."];
-          const allowed = [], reports = [];
+          const allowed = fs.existsSync('package.json') ? ['package.json'] : [], reports = [];
+          
+          const root = fs.existsSync('package.json') ? JSON.parse(fs.readFileSync('package.json','utf8')) : {};
+          const patches = {};
+          for (const [section, entries] of Object.entries(patches)) for (const [name, version] of Object.entries(entries)) root[section][name] = version;
+          const files = cp.execFileSync('git',['ls-files','-z'],{encoding:'utf8'}).split('\0').filter(p=>p && !/(^|\/)(node_modules|vendor)\//.test(p) && /\.(?:[cm]?[jt]sx?|php|json)$/.test(p) && !/(^|\/)(package(?:-lock)?\.json|composer(?:\.json|\.lock))$/.test(p));
+          const sources = files.filter(p=>fs.existsSync(p)).map(p=>fs.readFileSync(p,'utf8'));
+          for (const name of []) {
+            if (sources.some(s=>s.includes(name))) {console.log('DEPENDENCY_RETAINED',name);continue;}
+            for (const section of ['dependencies','devDependencies','optionalDependencies']) {
+              delete root[section]?.[name];
+              delete root[section]?.['@types/'+name.replace(/^@[^/]+\//,'')];
+            }
+            console.log('UNUSED_DEPENDENCY_REMOVED',name);
+          }
+          if (false) {
+            const result = npm(['view','vite@6','version','--json'],'.');
+            if (result.status===0) {
+              const versions=JSON.parse(result.stdout), latest=Array.isArray(versions)?versions.at(-1):versions;
+              if (/^6\.\d+\.\d+$/.test(latest) && latest!=='6.4.4') { root.overrides.vitepress.vite=latest; console.log('OVERRIDE_UPDATED',latest); }
+            }
+          }
+          if(fs.existsSync('package.json')) fs.writeFileSync('package.json',JSON.stringify(root,null,2)+'\n');
+          const bundled = cp.execFileSync('git',['ls-files','-z'],{encoding:'utf8'}).split('\0').filter(p=>p && /(^|\/)node_modules\//.test(p));
+          if (bundled.length) {
+            const roots = [...new Set(bundled.map(p=>p.slice(0,p.indexOf('node_modules')+'node_modules'.length)))];
+            for(const dir of roots) cp.execFileSync('git',['rm','--cached','-r','--quiet','--',dir],{stdio:'inherit'});
+            const old=fs.existsSync('.gitignore')?fs.readFileSync('.gitignore','utf8'):'';
+            if (!old.split(/\r?\n/).some(l=>l.trim()==='node_modules/'||l.trim()==='node_modules')) fs.writeFileSync('.gitignore',old.replace(/\s*$/,'')+'\nnode_modules/\n');
+            allowed.push('.gitignore');
+            console.log('BUNDLED_DEPENDENCIES_REMOVED',bundled.length);
+          }
+          
           function npm(args, cwd) {
             const p = cp.spawnSync('npm', args, {cwd, encoding:'utf8', timeout:240000, maxBuffer:20*1024*1024, env:{...process.env,npm_config_ignore_scripts:'true'}});
             return {status:p.status, output:(p.stdout||'')+(p.stderr||''), stdout:p.stdout||'', error:p.error?.message};
@@ -34,6 +66,8 @@ jobs:
               const init = npm(['install','--package-lock-only','--ignore-scripts','--no-audit','--no-fund'], dir);
               if (init.status !== 0) { console.log('AUDIT_ERROR',JSON.stringify({dir,stage:'lockfile',...init})); continue; }
             }
+            const refresh = npm(['install','--package-lock-only','--ignore-scripts','--no-audit','--no-fund'], dir);
+            if(refresh.status!==0) console.log('INSTALL_ERROR',JSON.stringify({dir,...refresh}));
             const beforeResult = npm(['audit','--json'], dir);
             let before;
             try {before = JSON.parse(beforeResult.stdout);} catch {console.log('AUDIT_ERROR',JSON.stringify({dir,stage:'before',...beforeResult}));continue;}
@@ -63,4 +97,20 @@ jobs:
               cp.execFileSync('git',['push','origin','HEAD:codex/security-audit-2026-10-30'],{stdio:'inherit'});
             }
           }
+          NODE
+      - name: Validate updated dependencies
+        run: |
+          node - <<'NODE'
+          const fs=require('fs'), cp=require('child_process');
+          const dirs=[{"dir":".","commands":[["test","--","--watchAll=false","--runInBand","--passWithNoTests"],["run","build"]]}];
+          let failed=false;
+          for(const entry of dirs){
+            for(const args of [['ci','--ignore-scripts','--no-audit','--no-fund'],...entry.commands]){
+              const r=cp.spawnSync('npm',args,{cwd:entry.dir,encoding:'utf8',timeout:480000,maxBuffer:12*1024*1024,env:{...process.env,CI:'true',npm_config_ignore_scripts:'true',NEXT_TELEMETRY_DISABLED:'1'}});
+              console.log('VALIDATION',JSON.stringify({dir:entry.dir,args,status:r.status,error:r.error?.message}));
+              console.log((r.stdout||'')+(r.stderr||''));
+              if(r.status!==0){failed=true;break;}
+            }
+          }
+          if(failed)process.exitCode=1;
           NODE
